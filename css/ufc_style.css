@@ -1,0 +1,29 @@
+.ufc_group {
+    position: fixed;
+    z-index: 99999999;
+}
+
+.ufc_content,
+.ufc_button {
+    position: relative;
+    z-index: 99999999;
+}
+
+.ufc_button>div,
+.ufc_content>div {
+    width: 100%;
+}
+
+.left_rotated {
+    -ms-transform: rotate(90deg);
+    -webkit-transform: rotate(90deg);
+    transform: rotate(90deg);
+    transform-origin: 0px 100%;
+}
+
+.right_rotated {
+    -ms-transform: rotate(270deg);
+    -webkit-transform: rotate(270deg);
+    transform: rotate(270deg);
+    transform-origin: 100% 100%;
+}
