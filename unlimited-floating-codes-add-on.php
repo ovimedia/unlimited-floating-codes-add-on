@@ -21,15 +21,7 @@ if ( ! class_exists( 'unlimited_floating_codes' ) )
             add_action( 'init', array( $this, 'ufc_save_options') );
             add_action( 'save_post', array( $this, 'ufc_save_data') );
             add_action( 'add_meta_boxes', array( $this, 'ufc_init_metabox') ); 
-            add_action( 'init', array( $this, 'ufc_init_taxonomy'));
             add_action( 'admin_print_scripts', array( $this, 'ufc_admin_js_css') );
-            add_action( 'floating_group_add_form_fields',  array( $this, 'add_feature_group_field'), 10, 2 );
-            add_action( 'floating_group_edit_form_fields',  array( $this, 'edit_feature_group_field'), 10, 2 );
-            add_action( 'created_floating_group', array( $this, 'ufc_save_floating_group_data'), 10, 2 );
-            add_action( 'edited_floating_group', array( $this, 'ufc_save_floating_group_data'), 10, 2 );
-            add_filter( 'manage_edit-floating_group_columns',  array( $this, 'ufc_add_floating_group_columns') );
-            add_filter( 'manage_floating_group_custom_column', array( $this, 'ufc_add_floating_group_column_content'), 10, 3 );
-
             add_action( 'wp_head', array($this, 'ufc_front_js_css'));
             add_action( 'wp_footer', array( $this, 'ufc_load_floating_codes') );
         }
@@ -46,28 +38,6 @@ if ( ! class_exists( 'unlimited_floating_codes' ) )
         }
                        
 
-        public function ufc_init_taxonomy()
-        {    
-            $labels = array(
-                'name' => translate( 'Floating Groups', 'unlimited-floating-codes' ),
-                'singular_name' => translate( 'Floating Group', 'unlimited-floating-codes' ),
-                'search_items' =>  translate( 'Search Floating Groups', 'unlimited-floating-codes' ),
-                'all_items' => translate( 'Show all Floating Groups', 'unlimited-floating-codes' ),
-                'parent_item' => translate( 'Floating Group Parent', 'unlimited-floating-codes' ),
-                'edit_item' => translate( 'Edit Floating Group', 'unlimited-floating-codes' ),
-                'update_item' => translate( 'Update Floating Group', 'unlimited-floating-codes' ),
-                'add_new_item' =>translate( 'Add Floating Group', 'unlimited-floating-codes' ),
-                'new_item_name' => translate( 'Floating Group Name', 'unlimited-floating-codes' ),
-            );
-            register_taxonomy( 'floating_group', array( 'code' ), 
-            array(
-                'hierarchical' => true,
-                'labels' => $labels,
-                'show_ui' => true,
-                'query_var' => true,
-                'rewrite' => array( 'slug' => 'floating_group' ),
-            ));
-        }
 
         public function ufc_admin_js_css() 
         {
@@ -112,24 +82,63 @@ if ( ! class_exists( 'unlimited_floating_codes' ) )
                         <option value="content" <?php if(get_post_meta( get_the_ID(), 'ufc_type', true) == "content") echo ' selected="selected" '; ?> >
                             <?php echo translate( 'Content', 'unlimited-floating-codes' ) ?>
                         </option>
+                        <option value="popup" <?php if(get_post_meta( get_the_ID(), 'ufc_type', true) == "popup") echo ' selected="selected" '; ?> >
+                            <?php echo translate( 'Popup', 'unlimited-floating-codes' ) ?>
+                        </option>
                     </select>
                 </p>
-                <p>
+                <p class="content_option button_option">
+                    <label for="ufc_location">
+                        <?php echo translate( 'Code Location:', 'unlimited-floating-codes' ); ?>
+                    </label>
+                </p>
+                <p class="content_option button_option">
+                    <select id="ufc_location" name="ufc_location" >
+
+                        <?php           
+
+                            $positions = array("top", "bottom", "left", "right");
+
+                            for ($x = 0; $x < count($positions); $x++) 
+                            { 
+                                echo "<option value='".$positions[$x]."' ";                             
+
+                                if(get_post_meta( get_the_ID(), 'ufc_location', true) == $positions[$x]) 
+                                    echo ' selected="selected" '; 
+
+                                echo ">".translate( ucfirst ($positions[$x]), 'unlimited-floating-codes' )."</option>"; 
+
+                            } 
+
+                        ?>
+                    </select>
+                </p>
+                <p class="content_option button_option">
+                    <label for="ufc_position">
+                        <?php echo translate( 'Code Position:', 'unlimited-floating-codes' ); ?>
+                    </label>
+                </p>
+                <p class="content_option button_option">
+                    <input type="text" placeholder="<?php echo translate( 'In px or %', 'unlimited-floating-codes' ); ?>" 
+                    value='<?php echo get_post_meta( get_the_ID(), 'ufc_position', true); ?>' 
+                    id="ufc_position" name="ufc_position" />
+                </p>
+                <p class="content_option popup_option">
                     <label for="ufc_width">
                         <?php echo translate( 'Code Width:', 'unlimited-floating-codes' ); ?>
                     </label>
                 </p>
-                <p>
+                <p class="content_option popup_option">
                    <input type="text" placeholder="<?php echo translate( 'In px or %', 'unlimited-floating-codes' ); ?>" 
                    value='<?php echo get_post_meta( get_the_ID(), 'ufc_width', true); ?>' 
                    id="ufc_width" name="ufc_width" />
                 </p>
-                <p>
+                <p class="content_option popup_option">
                     <label for="ufc_height">
                         <?php echo translate( 'Code Height:', 'unlimited-floating-codes' ); ?>
                     </label>
                 </p>
-                <p>
+                <p class="content_option popup_option">
                    <input type="text" placeholder="<?php echo translate( 'In px or %', 'unlimited-floating-codes' ); ?>" 
                    value='<?php echo get_post_meta( get_the_ID(), 'ufc_height', true); ?>' 
                    id="ufc_height" name="ufc_height" />
@@ -210,9 +219,25 @@ if ( ! class_exists( 'unlimited_floating_codes' ) )
             
             update_post_meta( $post_id, 'ufc_type',sanitize_text_field( $_REQUEST["ufc_type"]));
 
-            update_post_meta( $post_id, 'ufc_width',sanitize_text_field( $_REQUEST["ufc_width"]));
+            if(sanitize_text_field( $_REQUEST["ufc_type"]) != "popup")
+                update_post_meta( $post_id, 'ufc_location',sanitize_text_field( $_REQUEST["ufc_location"]));
+            else
+                update_post_meta( $post_id, 'ufc_location', ""); 
+
+            if(sanitize_text_field( $_REQUEST["ufc_type"]) != "popup")
+                update_post_meta( $post_id, 'ufc_position',sanitize_text_field( $_REQUEST["ufc_position"]));
+            else
+                update_post_meta( $post_id, 'ufc_position', ""); 
+
+            if(sanitize_text_field( $_REQUEST["ufc_type"]) != "button")
+                update_post_meta( $post_id, 'ufc_width',sanitize_text_field( $_REQUEST["ufc_width"]));
+            else
+                update_post_meta( $post_id, 'ufc_width', ""); 
         
-            update_post_meta( $post_id, 'ufc_height',sanitize_text_field( $_REQUEST["ufc_height"]));
+            if(sanitize_text_field( $_REQUEST["ufc_type"]) != "button")
+                update_post_meta( $post_id, 'ufc_height',sanitize_text_field( $_REQUEST["ufc_height"]));
+            else
+                update_post_meta( $post_id, 'ufc_height', ""); 
             
             if(sanitize_text_field( $_REQUEST["ufc_type"]) == "button")
                 update_post_meta( $post_id, 'ufc_rotation', intval($_REQUEST["ufc_rotation"])); 
@@ -230,215 +255,95 @@ if ( ! class_exists( 'unlimited_floating_codes' ) )
                 update_post_meta( $post_id, 'ufc_delay', ""); 
         }
 
-        
-        public function add_feature_group_field($taxonomy) 
-        {
-            ?>
-                <div class="form-field term-group">
-
-                    <p>
-                        <label for="ufc_floating_group_location"><?php echo translate( 'Floating Group Location:', 'unlimited-floating-codes' ); ?></label>
-
-                        <select id="ufc_floating_group_location" name="ufc_floating_group_location" >
-
-                            <?php           
-
-                                $positions = array("top", "bottom", "left", "right");
-
-                                for ($x = 0; $x < count($positions); $x++) 
-                                { 
-                                    echo "<option value='".$positions[$x]."' ";                             
-
-                                    if(get_term_meta( $taxonomy->term_id, 'ufc_floating_group_location', true) == $positions[$x]) 
-                                        echo ' selected="selected" '; 
-
-                                    echo ">".translate( ucfirst ($positions[$x]), 'unlimited-floating-codes' )."</option>"; 
-
-                                } 
-
-                            ?>
-                        </select>
-                    </p>
-                    <p>
-                        <label for="ufc_floating_group_position">
-                            <?php echo translate( 'Floating Group Position:', 'unlimited-floating-codes' ); ?>
-                        </label>
-                    </p>
-                    <p>
-                        <input type="text" placeholder="<?php echo translate( 'In px or %', 'unlimited-floating-codes' ); ?>" 
-                        value='<?php echo get_term_meta( $taxonomy->term_id, 'ufc_floating_group_position', true); ?>' 
-                        id="ufc_floating_group_position" name="ufc_floating_group_position" />
-                    </p>
-                </div>
-                
-            <?php
-        }
-
-        public function edit_feature_group_field($taxonomy) 
-         {
-            ?>
-                <tr class="form-field term-group-wrap">
-                    <th scope="row"><label for="ufc_floating_group_location"><?php echo translate( 'Floating Group Location:', 'unlimited-floating-codes' );  ?></label></th>
-                    <td>
-                        <select id="ufc_floating_group_location" name="ufc_floating_group_location" >
-
-                            <?php           
-
-                                $positions = array("top", "bottom", "left", "right");
-
-                                for ($x = 0; $x < count($positions); $x++) 
-                                { 
-                                    echo "<option value='".$positions[$x]."' ";                             
-
-                                    if(get_term_meta( $taxonomy->term_id, 'ufc_floating_group_location', true) == $positions[$x]) 
-                                        echo ' selected="selected" '; 
-
-                                    echo ">".translate( ucfirst ($positions[$x]), 'unlimited-floating-codes' )."</option>"; 
-
-                                } 
-
-                            ?>
-                        </select>
-                    </td>
-                </tr>
-                <tr>
-                    <th scope="row"><label for="ufc_floating_group_position"><?php echo translate( 'Floating Group Position:', 'unlimited-floating-codes' );?></label></th>
-                    <td>
-                        <input type="text" placeholder="<?php echo translate( 'In px or %', 'unlimited-floating-codes' ); ?>" 
-                        value='<?php echo get_term_meta( $taxonomy->term_id, 'ufc_floating_group_position', true); ?>' 
-                        id="ufc_floating_group_position" name="ufc_floating_group_position" />
-                    </td>
-                </tr>
-                
-            <?php
-        }
-
-        public function ufc_save_floating_group_data( $term_id, $tt_id )
-        {
-            if( isset( $_REQUEST['ufc_floating_group_location'] ) && '' != $_REQUEST['ufc_floating_group_location'] )
-            {
-                update_term_meta( $term_id, 'ufc_floating_group_location', sanitize_text_field( $_REQUEST["ufc_floating_group_location"]) );
-                update_term_meta( $term_id, 'ufc_floating_group_position', sanitize_text_field( $_REQUEST["ufc_floating_group_position"]) );
-            }
-        }
-
-        public function ufc_add_floating_group_columns( $columns ){
-
-            $columns = array(
-                'cb' => '<input type="checkbox" />',
-                'name' => __( 'Name' ), 
-                'fg_location' => translate( 'Location', 'unlimited-floating-codes' ),
-                'fg_position' => translate( 'Position', 'unlimited-floating-codes' ),
-                'posts' => translate( 'Codes', 'unlimited-floating-codes' )
-            );
-            
-            return $columns;
-        }
-
-        public function ufc_add_floating_group_column_content( $content, $column_name, $term_id )
-        {
-            switch( $column_name )
-            {
-                case 'fg_location':
-
-                    echo ucfirst(get_term_meta( $term_id, 'ufc_floating_group_location', true ));
-
-                break;
-
-                case 'fg_position':
-
-                    echo get_term_meta( $term_id, 'ufc_floating_group_position', true );
-
-                break;
-            }           
- 
-            return $content;
-        }
-
         public function ufc_load_floating_codes()
         {
-            $floating_groups = get_terms( array(
-                'taxonomy' => 'floating_group',
-                'hide_empty' => false,
-            ) );
-
-            foreach($floating_groups as $group)
-            {
-                $position = get_term_meta( $group->term_id, 'ufc_floating_group_position', true);
-                $location = get_term_meta( $group->term_id, 'ufc_floating_group_location', true );
-
-                $group_location = $location .": 0px;";
-
-                if($location == "top" || $location == "bottom")
-                    $group_position = "left: ".$position.";";
-                else
-                    $group_position = "top: ".$position.";";
-
-                echo "<div class='ufc_group' style='".$group_location.$group_position."'>"; 
-
-                $args = array(
-                    'posts_per_page'   => -1,
-                    'meta_key'         => 'uc_order_code',
-                    'orderby'          => 'meta_value_num',
-                    'order'            => 'ASC',
-                    'post_type'        => 'code',
-                    'post_status'      => 'publish',
-                    'tax_query' => array(
-                        array(
-                            'taxonomy' => 'floating_group',
-                            'field' => 'term_id',
-                            'terms' => $group->term_id,
-                        ),
-                        array(
-                            'meta_key' => 'ufc_type',
-                            'meta_value'  =>  array('button','content')
-                        )
+            $args = array(
+                'posts_per_page'   => -1,
+                'meta_key'         => 'uc_order_code',
+                'orderby'          => 'meta_value_num',
+                'order'            => 'ASC',
+                'post_type'        => 'code',
+                'post_status'      => 'publish',
+                'tax_query' => array(
+                    array(
+                        'meta_key' => 'ufc_type',
+                        'meta_value'  =>  array('button','content')
                     )
-                );
+                )
+            );
 
-                $codes = get_posts( $args );
+            $codes = get_posts( $args );
 
-                foreach ( $codes as $code )
-                {
-                    $post_type = get_post_meta( $code->ID, 'uc_post_type_id' );
-                    $post_id = get_post_meta( $code->ID, 'uc_post_code_id');
-                    $exclude_post_id = get_post_meta( $code->ID, 'uc_exclude_post_code_id'); 
-                    
-                    if($this->check_wpml_languages($code->ID))
-                        if(in_array("all", $post_type[0]) || in_array(get_post_type(get_the_id()), $post_type[0]))
-                                if(in_array(get_the_id(), $post_id[0]) || in_array(-1, $post_id[0]) && !in_array(get_the_id(), $exclude_post_id[0] ))
-                                    $this->load_content_code($code, $location, $position);    
-                } 
-
-                echo "</div>";
-            }
+            foreach ( $codes as $code )
+            {
+                $post_type = get_post_meta( $code->ID, 'uc_post_type_id' );
+                $post_id = get_post_meta( $code->ID, 'uc_post_code_id');
+                $exclude_post_id = get_post_meta( $code->ID, 'uc_exclude_post_code_id'); 
+                
+                if($this->check_wpml_languages($code->ID))
+                    if(in_array("all", $post_type[0]) || in_array(get_post_type(get_the_id()), $post_type[0]))
+                            if(in_array(get_the_id(), $post_id[0]) || in_array(-1, $post_id[0]) && !in_array(get_the_id(), $exclude_post_id[0] ))
+                                $this->load_content_code($code);    
+            } 
+        
         }
 
-        public function load_content_code($code, $location, $position)
+        public function load_content_code($code)
         {
             $type = get_post_meta( $code->ID, 'ufc_type', true);
+            $location =  get_post_meta( $code->ID, 'ufc_location', true);
+            $position =  get_post_meta( $code->ID, 'ufc_position', true);
             $width = get_post_meta( $code->ID, 'ufc_width', true);
             $height = get_post_meta( $code->ID, 'ufc_height', true);
             $rotated = get_post_meta( $code->ID, 'ufc_rotation', true);
 
-            $rotation  = $float = "";
-            $associated = 0;
+            $style = "";
 
-            if($location == "top" || $location == "bottom" || $rotated == 1)
-                $float = "float: left;";
+            if($type != "popup")
+            {
+                $style .= $location .": 0px;";
+
+                if($location == "top" || $location == "bottom")
+                    $style .= "left: ".$position.";";
+                else
+                    $style .= "top: ".$position.";";
+
+                $rotation  = $float = "";
+                $associated = 0;
+
+                if($location == "top" || $location == "bottom" || $rotated == 1)
+                    $style .= "float: left;";
+            }
+            else
+            {
+                if(substr($width,-2) == "px")
+                    $style .= "margin-left:-".(substr($width, 0, -2) / 2).substr($width,-2).";";
+                else
+                    $style .= "margin-left:-".(substr($width, 0, -1) / 2).substr($width,-1).";";
+
+                if(substr($height,-2) == "px")
+                    $style .= "margin-top:-".(substr($height, 0, -2) / 2).substr($height,-2).";";
+                else
+                    $style .= "margin-top:-".(substr($height, 0, -1) / 2).substr($height,-1).";";
+            }
 
             if($type == "button")
             {
-                if($rotated  == 1)
+                if($rotated == 1)
                 {
                     $rotation = "rotated";
                 }
 
                 $associated = get_post_meta( $code->ID, 'ufc_associated_uc', true);        
             }    
+            else
+            {
+                $style .= "width:".$width.";";
+                $style .= "height:".$height.";";
+            }
 
-            echo "<div id='ufc_content_".$code->ID."' class='ufc_".$type." ".$location."_".$rotation."'  style='".$float."' >".
-            do_shortcode($code->post_content);
+            echo "<div id='ufc_content_".$code->ID."' class='ufc_".$type." ".$location."_".$rotation."'  
+            style='".$style."' >".do_shortcode($code->post_content);
             
             if($associated != 0) echo "<input type='hidden' value='".$associated ."' id='ufc_associated_'".$code->ID." />";
             

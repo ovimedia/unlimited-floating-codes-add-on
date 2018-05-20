@@ -1,17 +1,20 @@
-.ufc_group {
+.ufc_content,
+.ufc_button,
+.ufc_popup {
     position: fixed;
     z-index: 99999999;
 }
 
-.ufc_content,
-.ufc_button {
-    position: relative;
-    z-index: 99999999;
+.ufc_button>div,
+.ufc_content>div,
+.ufc_popup>div {
+    width: 100% !important;
+    margin: 0px !important;
 }
 
-.ufc_button>div,
-.ufc_content>div {
-    width: 100%;
+.ufc_popup {
+    top: 50%;
+    left: 50%;
 }
 
 .left_rotated {
