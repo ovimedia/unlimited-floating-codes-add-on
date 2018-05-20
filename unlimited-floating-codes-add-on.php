@@ -56,7 +56,7 @@ if ( ! class_exists( 'unlimited_floating_codes' ) )
             wp_register_style( 'ufc_style_css', WP_PLUGIN_URL. '/'.basename( dirname( __FILE__ ) ).'/css/ufc_style.css', false, '1.0.0' );
             wp_enqueue_style( 'ufc_style_css' );
 
-            wp_enqueue_script( 'wop_front_script', WP_PLUGIN_URL. '/'.basename( dirname( __FILE__ ) ).'/js/ufc_style.js', array('jquery') );
+            wp_enqueue_script( 'wop_front_script', WP_PLUGIN_URL. '/'.basename( dirname( __FILE__ ) ).'/js/ufc.js', array('jquery') );
         }
 
         public function ufc_meta_options()
@@ -143,6 +143,21 @@ if ( ! class_exists( 'unlimited_floating_codes' ) )
                    value='<?php echo get_post_meta( get_the_ID(), 'ufc_height', true); ?>' 
                    id="ufc_height" name="ufc_height" />
                 </p>
+                <p class="button_option content_option popup_option">
+                    <label for="ufc_responsive">
+                        <?php echo translate( 'Hide in mobile:', 'unlimited-floating-codes' ); ?>
+                    </label>
+                </p>
+                <p class="button_option content_option popup_option">
+                    <select id="ufc_responsive" name="ufc_responsive">
+                        <option value="0" <?php if(get_post_meta( get_the_ID(), 'ufc_responsive', true) == 0) echo ' selected="selected" '; ?> >
+                            <?php echo translate( 'No', 'unlimited-floating-codes' ) ?>
+                        </option>
+                        <option value="1" <?php if(get_post_meta( get_the_ID(), 'ufc_responsive', true) == 1) echo ' selected="selected" '; ?> >
+                            <?php echo translate( 'Yes', 'unlimited-floating-codes' ) ?>
+                        </option>
+                    </select>
+                </p>
 
                 <p class="button_option">
                     <label for="ufc_rotation">
@@ -203,7 +218,7 @@ if ( ! class_exists( 'unlimited_floating_codes' ) )
                     </label>
                 </p>
                 <p class="content_option">
-                   <input type="text" placeholder="<?php echo translate( 'In miliseconds', 'unlimited-floating-codes' ); ?>" 
+                   <input type="text" placeholder="<?php echo translate( 'In seconds', 'unlimited-floating-codes' ); ?>" 
                    value='<?php echo get_post_meta( get_the_ID(), 'ufc_delay', true); ?>' 
                    id="ufc_delay" name="ufc_delay" />
                 </p>                
@@ -253,6 +268,8 @@ if ( ! class_exists( 'unlimited_floating_codes' ) )
                 update_post_meta( $post_id, 'ufc_delay', intval($_REQUEST["ufc_delay"])); 
             else
                 update_post_meta( $post_id, 'ufc_delay', ""); 
+
+            update_post_meta( $post_id, 'ufc_responsive', intval($_REQUEST["ufc_responsive"]));  
         }
 
         public function ufc_load_floating_codes()
@@ -264,10 +281,10 @@ if ( ! class_exists( 'unlimited_floating_codes' ) )
                 'order'            => 'ASC',
                 'post_type'        => 'code',
                 'post_status'      => 'publish',
-                'tax_query' => array(
+                'meta_query' => array(
                     array(
-                        'meta_key' => 'ufc_type',
-                        'meta_value'  =>  array('button','content')
+                        'key' => 'ufc_type',
+                        'value'  =>  array('button','content', 'popup')
                     )
                 )
             );
@@ -296,25 +313,15 @@ if ( ! class_exists( 'unlimited_floating_codes' ) )
             $width = get_post_meta( $code->ID, 'ufc_width', true);
             $height = get_post_meta( $code->ID, 'ufc_height', true);
             $rotated = get_post_meta( $code->ID, 'ufc_rotation', true);
+            $delay = get_post_meta( $code->ID, 'ufc_delay', true);
+            $responsive = get_post_meta( $code->ID, 'ufc_responsive', true);
 
-            $style = "";
+            $mobile = $style = "";
 
-            if($type != "popup")
-            {
-                $style .= $location .": 0px;";
+            if($responsive == 1)
+                $mobile = "ufc_hide_mobile";
 
-                if($location == "top" || $location == "bottom")
-                    $style .= "left: ".$position.";";
-                else
-                    $style .= "top: ".$position.";";
-
-                $rotation  = $float = "";
-                $associated = 0;
-
-                if($location == "top" || $location == "bottom" || $rotated == 1)
-                    $style .= "float: left;";
-            }
-            else
+            if($type == "popup")
             {
                 if(substr($width,-2) == "px")
                     $style .= "margin-left:-".(substr($width, 0, -2) / 2).substr($width,-2).";";
@@ -329,6 +336,19 @@ if ( ! class_exists( 'unlimited_floating_codes' ) )
 
             if($type == "button")
             {
+                $style .= $location .": 0px;";
+
+                if($location == "top" || $location == "bottom")
+                    $style .= "left: ".$position.";";
+                else
+                    $style .= "top: ".$position.";";
+
+                $rotation  = $float = "";
+                $associated = 0;
+
+                if($location == "top" || $location == "bottom" || $rotated == 1)
+                    $style .= "float: left;";
+
                 if($rotated == 1)
                 {
                     $rotation = "rotated";
@@ -342,8 +362,18 @@ if ( ! class_exists( 'unlimited_floating_codes' ) )
                 $style .= "height:".$height.";";
             }
 
-            echo "<div id='ufc_content_".$code->ID."' class='ufc_".$type." ".$location."_".$rotation."'  
-            style='".$style."' >".do_shortcode($code->post_content);
+            if($type == "content")
+            {
+                if($location == "top" || $location == "bottom")
+                    $style .= $location.":-".$height.";";
+                else
+                    $style .= $location.":-".$width.";";
+
+                $style .= "-webkit-transition:". $location. " ".$delay."s;";
+                $style .= "transition:". $location. " ".$delay."s;";
+            }
+
+            echo "<div id='ufc_content_".$code->ID."' class='ufc_".$type." ".$location."_".$rotation." ".$mobile."' style='".$style."' >".do_shortcode($code->post_content);
             
             if($associated != 0) echo "<input type='hidden' value='".$associated ."' id='ufc_associated_'".$code->ID." />";
             

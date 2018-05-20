@@ -17,6 +17,22 @@
     left: 50%;
 }
 
+.ufc_top {
+    top: 0px !important;
+}
+
+.ufc_bottom {
+    bottom: 0px !important;
+}
+
+.ufc_left {
+    left: 0px !important;
+}
+
+.ufc_right {
+    right: 0px !important;
+}
+
 .left_rotated {
     -ms-transform: rotate(90deg);
     -webkit-transform: rotate(90deg);
@@ -29,4 +45,10 @@
     -webkit-transform: rotate(270deg);
     transform: rotate(270deg);
     transform-origin: 100% 100%;
+}
+
+@media only screen and (max-width: 860px) {
+    .ufc_hide_mobile {
+        display: none !important;
+    }
 }
