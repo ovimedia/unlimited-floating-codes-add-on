@@ -201,12 +201,12 @@ if ( ! class_exists( 'unlimited_floating_codes' ) )
                 </p>
                  <p class="content_option">
                     <label for="ufc_contentbtn">
-                        <?php echo translate( 'Button to show content:', 'unlimited-floating-codes' ); ?>
+                        <?php echo translate( 'Button Shortcode to show content:', 'unlimited-floating-codes' ); ?>
                     </label>
                 </p>
                 <p class="content_option">
                    <input type="text" readonly 
-                   value='[ufc_show_content id="<?php echo get_the_ID();  ?>" textshow="" texthide=""]'  />
+                   value='[ufc_show_content id="<?php echo get_the_ID();  ?>" textshow="" texthide="" class=""]'  />
                 </p>           
                   
             </div>
@@ -251,7 +251,7 @@ if ( ! class_exists( 'unlimited_floating_codes' ) )
                 update_post_meta( $post_id, 'ufc_delay', ""); 
 
             if(sanitize_text_field( $_REQUEST["ufc_scroll"]) != "content")
-                update_post_meta( $post_id, 'ufc_scroll', intval($_REQUEST["ufc_scroll"])); 
+                update_post_meta( $post_id, 'ufc_scroll', sanitize_text_field($_REQUEST["ufc_scroll"])); 
             else
                 update_post_meta( $post_id, 'ufc_scroll', ""); 
 
