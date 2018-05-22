@@ -172,7 +172,7 @@ if ( ! class_exists( 'unlimited_floating_codes' ) )
                 </p>   
                 <p class="button_option popup_option">
                     <label for="ufc_scroll">
-                        <?php echo translate( 'screen Scroll to show:', 'unlimited-floating-codes' ); ?>
+                        <?php echo translate( 'Scroll to show:', 'unlimited-floating-codes' ); ?>
                     </label>
                 </p>
                 <p class="button_option popup_option">
