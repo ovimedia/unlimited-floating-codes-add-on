@@ -12,6 +12,10 @@
     margin: 0px !important;
 }
 
+.ufc_associated_content {
+    cursor: pointer !important;
+}
+
 .ufc_popup {
     top: 50%;
     left: 50%;

@@ -5,7 +5,7 @@ Description: Generate many floating codes to display any content.
 Author: Ovi García - ovimedia.es
 Author URI: http://www.ovimedia.es/
 Text Domain: unlimited-floating-codes
-Version: 0.1
+Version: 0.3
 Plugin URI: http://www.ovimedia.es/
 */
 
@@ -24,6 +24,8 @@ if ( ! class_exists( 'unlimited_floating_codes' ) )
             add_action( 'admin_print_scripts', array( $this, 'ufc_admin_js_css') );
             add_action( 'wp_head', array($this, 'ufc_front_js_css'));
             add_action( 'wp_footer', array( $this, 'ufc_load_floating_codes') );
+            add_shortcode( 'ufc_show_content', array( $this, 'ufc_load_button_content') );
+            add_action( 'vc_before_init',  array( $this, 'ufc_vc_button_content') );
         }
                 
         public function ufc_load_languages() 
@@ -174,44 +176,6 @@ if ( ! class_exists( 'unlimited_floating_codes' ) )
                         </option>
                     </select>
                 </p>
-                <p class="button_option">
-                    <label for="ufc_associated_uc">
-                        <?php echo translate( 'Show Associated Code:', 'unlimited-floating-codes' ); ?>
-                    </label>
-                </p>
-                <p class="button_option">
-                    <select  id="ufc_associated_uc" name="ufc_associated_uc">
-                        <option value="0" <?php if(get_post_meta( get_the_ID(), 'ufc_associated_uc', true) == 0) echo ' selected="selected" '; ?> >
-                            <?php echo translate( 'Neither', 'unlimited-floating-codes' ) ?>
-                        </option>
-                        <?php
-
-                            $args = array(
-                                'posts_per_page'   => -1,
-                                'orderby'          => 'title',
-                                'order'            => 'ASC',
-                                'exclude'          => get_the_ID(),
-                                'post_type'        => 'code',
-                                'meta_key'         => "ufc_type",
-                                'meta_value'       => 'content',
-                                'post_status'      => 'publish'
-                            );
-
-                            $codes = get_posts( $args );
-
-                            foreach ( $codes as $code )
-                            {
-                                echo '<option ';
-
-                                if( get_post_meta( get_the_ID(), 'ufc_associated_uc', true) == $code->ID )
-                                    echo ' selected="selected" ';
-
-                                echo ' value="'.$code->ID.'">'.ucfirst ($code->post_title).'</option>';
-                            } 
-
-                        ?>
-                    </select>
-                </p>
                 <p class="content_option">
                     <label for="ufc_delay">
                         <?php echo translate( 'Delay of the appearance:', 'unlimited-floating-codes' ); ?>
@@ -221,7 +185,17 @@ if ( ! class_exists( 'unlimited_floating_codes' ) )
                    <input type="text" placeholder="<?php echo translate( 'In seconds', 'unlimited-floating-codes' ); ?>" 
                    value='<?php echo get_post_meta( get_the_ID(), 'ufc_delay', true); ?>' 
                    id="ufc_delay" name="ufc_delay" />
-                </p>                
+                </p>      
+
+                 <p class="content_option">
+                    <label for="ufc_contentbtn">
+                        <?php echo translate( 'Button to show content:', 'unlimited-floating-codes' ); ?>
+                    </label>
+                </p>
+                <p class="content_option">
+                   <input type="text" readonly 
+                   value='[ufc_show_content id="<?php echo get_the_ID();  ?>" text="Show"]'  />
+                </p>           
                   
             </div>
             
@@ -258,11 +232,6 @@ if ( ! class_exists( 'unlimited_floating_codes' ) )
                 update_post_meta( $post_id, 'ufc_rotation', intval($_REQUEST["ufc_rotation"])); 
             else
                 update_post_meta( $post_id, 'ufc_rotation', ""); 
-        
-            if(sanitize_text_field( $_REQUEST["ufc_type"]) == "button")
-                update_post_meta( $post_id, 'ufc_associated_uc', intval($_REQUEST["ufc_associated_uc"])); 
-            else
-                update_post_meta( $post_id, 'ufc_associated_uc', ""); 
 
             if(sanitize_text_field( $_REQUEST["ufc_type"]) == "content")
                 update_post_meta( $post_id, 'ufc_delay', intval($_REQUEST["ufc_delay"])); 
@@ -316,10 +285,10 @@ if ( ! class_exists( 'unlimited_floating_codes' ) )
             $delay = get_post_meta( $code->ID, 'ufc_delay', true);
             $responsive = get_post_meta( $code->ID, 'ufc_responsive', true);
 
-            $mobile = $style = "";
+            $mobile = $style = $class = "";
 
             if($responsive == 1)
-                $mobile = "ufc_hide_mobile";
+                $class .= " ufc_hide_mobile ";
 
             if($type == "popup")
             {
@@ -344,17 +313,14 @@ if ( ! class_exists( 'unlimited_floating_codes' ) )
                     $style .= "top: ".$position.";";
 
                 $rotation  = $float = "";
-                $associated = 0;
 
                 if($location == "top" || $location == "bottom" || $rotated == 1)
                     $style .= "float: left;";
 
                 if($rotated == 1)
                 {
-                    $rotation = "rotated";
-                }
-
-                $associated = get_post_meta( $code->ID, 'ufc_associated_uc', true);        
+                    $class .= " ".$location."_rotated ";
+                }  
             }    
             else
             {
@@ -369,15 +335,29 @@ if ( ! class_exists( 'unlimited_floating_codes' ) )
                 else
                     $style .= $location.":-".$width.";";
 
+                if($location == "top" || $location == "bottom")
+                    $style .= "left: ".$position.";";
+                else
+                    $style .= "top: ".$position.";";
+
                 $style .= "-webkit-transition:". $location. " ".$delay."s;";
                 $style .= "transition:". $location. " ".$delay."s;";
+
+                $class .= " ufc_hide_".$code->ID;
+
+                echo "<style>.ufc_show_".$code->ID."{".$location.": 0px !important;}";
+                
+                if($location == "top" || $location == "bottom")
+                    echo ".ufc_hide_".$code->ID."{".$location."-: ".$height." !important;}";
+                else
+                    echo ".ufc_hide_".$code->ID."{".$location."-: ".$width." !important;}";
+                    
+                echo "</style>";
             }
 
-            echo "<div id='ufc_content_".$code->ID."' class='ufc_".$type." ".$location."_".$rotation." ".$mobile."' style='".$style."' >".do_shortcode($code->post_content);
+
+            echo "<div id='ufc_content_".$code->ID."' class='ufc_".$type." ".$class."' style='".$style."' >".do_shortcode($code->post_content)."</div>";
             
-            if($associated != 0) echo "<input type='hidden' value='".$associated ."' id='ufc_associated_'".$code->ID." />";
-            
-            echo "</div>";
         }
 
         public function check_wpml_languages($code_id)
@@ -393,6 +373,71 @@ if ( ! class_exists( 'unlimited_floating_codes' ) )
             }
             
             return true; 
+        }
+
+        public function ufc_load_button_content($atts )
+        {
+            return "<span class='ufc_associated_content ".$atts['class']."'>".$atts['text']."<input type='hidden' value='".$atts['id']."' class='ufc_associated' /></span>";
+        }
+
+        public function ufc_vc_button_content() 
+        {
+            $content_code = array();
+
+            $args = array(
+                'posts_per_page'   => -1,
+                'orderby'          => 'title',
+                'order'            => 'ASC',
+                'post_type'        => 'code',
+                'meta_key'         => "ufc_type",
+                'meta_value'       => 'content',
+                'post_status'      => 'publish'
+            );
+
+            $codes = get_posts( $args );
+
+            foreach ( $codes as $code )
+            {
+                $content_code[$code->post_title] =  $code->ID;
+            } 
+
+            vc_map( array(
+                "name" => translate( "Button floating content", 'unlimited-floating-codes' ),
+                "base" => "ufc_show_content",
+                "class" => "",
+                "icon" => WP_PLUGIN_URL. '/unlimited-codes/img/ufc_icon.png',
+                "category" => __( "Unlimited Codes", "js_composer"),
+                'admin_enqueue_js' => array(get_template_directory_uri().'/vc_extend/bartag.js'),
+                'admin_enqueue_css' => array(get_template_directory_uri().'/vc_extend/bartag.css'),
+                "params" => array(              
+                    array(
+                        "type" => "dropdown",
+                        "holder" => "div",
+                        "class" => "",
+                        "heading" => translate( "Floating code to show:",'unlimited-floating-codes' ),
+                        "param_name" => "id",
+                        "value" => $content_code,
+                        "description" => translate( "Select the code to show on button click.", 'unlimited-floating-codes' )
+                    ),
+                    array(
+                        "type" => "textfield",
+                        "holder" => "div",
+                        "class" => "",
+                        "heading" => translate( "Button text:", 'unlimited-floating-codes' ),
+                        "param_name" => "text",
+                        "description" => translate( "Type the button text to show.", 'unlimited-floating-codes' ) 
+                    ),
+                    array(
+                        "type" => "textfield",
+                        "holder" => "div",
+                        "class" => "",
+                        "heading" => translate( "CSS Class:", "unlimited-codes" ),
+                        "param_name" => "class",
+                        "description" => translate( "Select a CSS class.", "unlimited-codes" )
+                    )
+                )
+                
+            ) );
         }
     }
 }
