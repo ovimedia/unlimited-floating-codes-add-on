@@ -9,3 +9,7 @@
 .meta_div_codes .popup_option {
     display: none;
 }
+
+.meta_div_codes .select2-container {
+    width: 100% !important;
+}

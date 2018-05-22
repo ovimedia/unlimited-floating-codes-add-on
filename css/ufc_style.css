@@ -16,6 +16,11 @@
     cursor: pointer !important;
 }
 
+.ufc_hide_scroll,
+.btn_hide {
+    display: none;
+}
+
 .ufc_popup {
     top: 50%;
     left: 50%;
@@ -51,7 +56,19 @@
     transform-origin: 100% 100%;
 }
 
-@media only screen and (max-width: 860px) {
+@media only screen and (min-width: 993px) {
+    .ufc_hide_desktop {
+        display: none !important;
+    }
+}
+
+@media only screen and (max-width: 992px) and (min-width: 769px) {
+    .ufc_hide_tablet {
+        display: none !important;
+    }
+}
+
+@media only screen and (max-width: 768px) {
     .ufc_hide_mobile {
         display: none !important;
     }

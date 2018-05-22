@@ -145,22 +145,6 @@ if ( ! class_exists( 'unlimited_floating_codes' ) )
                    value='<?php echo get_post_meta( get_the_ID(), 'ufc_height', true); ?>' 
                    id="ufc_height" name="ufc_height" />
                 </p>
-                <p class="button_option content_option popup_option">
-                    <label for="ufc_responsive">
-                        <?php echo translate( 'Hide in mobile:', 'unlimited-floating-codes' ); ?>
-                    </label>
-                </p>
-                <p class="button_option content_option popup_option">
-                    <select id="ufc_responsive" name="ufc_responsive">
-                        <option value="0" <?php if(get_post_meta( get_the_ID(), 'ufc_responsive', true) == 0) echo ' selected="selected" '; ?> >
-                            <?php echo translate( 'No', 'unlimited-floating-codes' ) ?>
-                        </option>
-                        <option value="1" <?php if(get_post_meta( get_the_ID(), 'ufc_responsive', true) == 1) echo ' selected="selected" '; ?> >
-                            <?php echo translate( 'Yes', 'unlimited-floating-codes' ) ?>
-                        </option>
-                    </select>
-                </p>
-
                 <p class="button_option">
                     <label for="ufc_rotation">
                         <?php echo translate( 'Rotate Button:', 'unlimited-floating-codes' ); ?>
@@ -185,8 +169,36 @@ if ( ! class_exists( 'unlimited_floating_codes' ) )
                    <input type="text" placeholder="<?php echo translate( 'In seconds', 'unlimited-floating-codes' ); ?>" 
                    value='<?php echo get_post_meta( get_the_ID(), 'ufc_delay', true); ?>' 
                    id="ufc_delay" name="ufc_delay" />
+                </p>   
+                <p class="button_option popup_option">
+                    <label for="ufc_scroll">
+                        <?php echo translate( 'screen Scroll to show:', 'unlimited-floating-codes' ); ?>
+                    </label>
+                </p>
+                <p class="button_option popup_option">
+                   <input type="text" placeholder="<?php echo translate( 'Without px', 'unlimited-floating-codes' ); ?>" 
+                   value='<?php echo get_post_meta( get_the_ID(), 'ufc_scroll', true); ?>' 
+                   id="ufc_scroll" name="ufc_scroll" />
                 </p>      
-
+                <p class="button_option content_option popup_option">
+                    <label for="ufc_responsive">
+                        <?php echo translate( 'Hide on:', 'unlimited-floating-codes' ); ?>
+                    </label>
+                </p>
+                <p class="button_option content_option popup_option">
+                    <select multiple="multiple"  id="ufc_responsive" name="ufc_responsive[]">
+                        <?php $responsive = get_post_meta( get_the_ID(), 'ufc_responsive', true) ; print_r($responsive); ?>
+                        <option value="ufc_hide_desktop" <?php if(in_array("ufc_hide_desktop", $responsive )) echo ' selected="selected" '; ?> >
+                            <?php echo translate( 'Desktop', 'unlimited-floating-codes' ) ?>
+                        </option>
+                        <option value="ufc_hide_tablet" <?php if(in_array("ufc_hide_tablet", $responsive )) echo ' selected="selected" '; ?> >
+                            <?php echo translate( 'Tablet', 'unlimited-floating-codes' ) ?>
+                        </option>
+                        <option value="ufc_hide_mobile" <?php if(in_array("ufc_hide_mobile", $responsive )) echo ' selected="selected" '; ?> >
+                            <?php echo translate( 'Mobile', 'unlimited-floating-codes' ) ?>
+                        </option>
+                    </select>
+                </p>
                  <p class="content_option">
                     <label for="ufc_contentbtn">
                         <?php echo translate( 'Button to show content:', 'unlimited-floating-codes' ); ?>
@@ -194,7 +206,7 @@ if ( ! class_exists( 'unlimited_floating_codes' ) )
                 </p>
                 <p class="content_option">
                    <input type="text" readonly 
-                   value='[ufc_show_content id="<?php echo get_the_ID();  ?>" text="Show"]'  />
+                   value='[ufc_show_content id="<?php echo get_the_ID();  ?>" textshow="" texthide=""]'  />
                 </p>           
                   
             </div>
@@ -238,7 +250,20 @@ if ( ! class_exists( 'unlimited_floating_codes' ) )
             else
                 update_post_meta( $post_id, 'ufc_delay', ""); 
 
-            update_post_meta( $post_id, 'ufc_responsive', intval($_REQUEST["ufc_responsive"]));  
+            if(sanitize_text_field( $_REQUEST["ufc_scroll"]) != "content")
+                update_post_meta( $post_id, 'ufc_scroll', intval($_REQUEST["ufc_scroll"])); 
+            else
+                update_post_meta( $post_id, 'ufc_scroll', ""); 
+
+            $hide_responsive = array();
+
+            foreach( $_REQUEST['ufc_responsive'] as $hide)
+            {
+                if(wp_check_invalid_utf8( $hide, true ) != "")
+                    $hide_responsive[] = sanitize_text_field($hide);
+            }
+
+            update_post_meta( $post_id, 'ufc_responsive', $hide_responsive);  
         }
 
         public function ufc_load_floating_codes()
@@ -284,11 +309,15 @@ if ( ! class_exists( 'unlimited_floating_codes' ) )
             $rotated = get_post_meta( $code->ID, 'ufc_rotation', true);
             $delay = get_post_meta( $code->ID, 'ufc_delay', true);
             $responsive = get_post_meta( $code->ID, 'ufc_responsive', true);
+            $scroll = get_post_meta( $code->ID, 'ufc_scroll', true);
 
             $mobile = $style = $class = "";
 
-            if($responsive == 1)
-                $class .= " ufc_hide_mobile ";
+            foreach($responsive as $device)
+                $class .= " ".$device." ";
+    
+            if($scroll  != "")
+                $class .= " ufc_hide_scroll ";
 
             if($type == "popup")
             {
@@ -356,7 +385,12 @@ if ( ! class_exists( 'unlimited_floating_codes' ) )
             }
 
 
-            echo "<div id='ufc_content_".$code->ID."' class='ufc_".$type." ".$class."' style='".$style."' >".do_shortcode($code->post_content)."</div>";
+            echo "<div id='ufc_content_".$code->ID."' class='ufc_".$type." ".$class."' style='".$style."' >";
+            echo do_shortcode($code->post_content);
+
+            if($scroll != "") echo "<input type='hidden' value='".$scroll."' class='ufc_scroll_code' />";
+
+            echo "</div>";
             
         }
 
@@ -377,7 +411,8 @@ if ( ! class_exists( 'unlimited_floating_codes' ) )
 
         public function ufc_load_button_content($atts )
         {
-            return "<span class='ufc_associated_content ".$atts['class']."'>".$atts['text']."<input type='hidden' value='".$atts['id']."' class='ufc_associated' /></span>";
+            return "<p class='ufc_associated_content ".$atts['class']."'><span class='btn_show'>".$atts['textshow']."</span>
+            <span class='btn_hide'>".$atts['texthide']."</span><input type='hidden' value='".$atts['id']."' class='ufc_associated' /></p>";
         }
 
         public function ufc_vc_button_content() 
@@ -423,9 +458,17 @@ if ( ! class_exists( 'unlimited_floating_codes' ) )
                         "type" => "textfield",
                         "holder" => "div",
                         "class" => "",
-                        "heading" => translate( "Button text:", 'unlimited-floating-codes' ),
-                        "param_name" => "text",
+                        "heading" => translate( "Text to show:", 'unlimited-floating-codes' ),
+                        "param_name" => "textshow",
                         "description" => translate( "Type the button text to show.", 'unlimited-floating-codes' ) 
+                    ),
+                    array(
+                        "type" => "textfield",
+                        "holder" => "div",
+                        "class" => "",
+                        "heading" => translate( "Text to hide:", 'unlimited-floating-codes' ),
+                        "param_name" => "texthide",
+                        "description" => translate( "Type the button text to hide.", 'unlimited-floating-codes' ) 
                     ),
                     array(
                         "type" => "textfield",
