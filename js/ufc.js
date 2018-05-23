@@ -29,12 +29,32 @@ jQuery(document).ready(function($) {
         jQuery('.ufc_scroll_code').each(function() {
             var element = jQuery(this);
             var parent = element.parent();
+            var id = parseInt(parent.find(".ufc_popup_id").val());
 
-            if (document.body.scrollTop > element.val() || document.documentElement.scrollTop > element.val()) {
-                parent.fadeIn(400);
-            } else {
-                parent.fadeOut(400);
+            if (!Number.isInteger(id) || localStorage.getItem("popcookie" + id) != "1") {
+                if (document.body.scrollTop > element.val() || document.documentElement.scrollTop > element.val()) {
+                    parent.fadeIn(600);
+                }
             }
         });
     }
+
+    jQuery('.ufc_popup').each(function() {
+        var element = jQuery(this);
+        var id = element.find(".ufc_popup_id").val();
+
+        if (localStorage.getItem("popcookie" + id) != "1") {
+
+            if (element.find(".ufc_scroll_code").val() == null)
+                jQuery("#ufc_content_" + id).fadeIn(1000);
+        }
+
+        if (typeof id !== true && element.find(".ufc_scroll_code").val() == "")
+            jQuery("#ufc_content_" + id).fadeIn(1000);
+
+        element.find(".ufc_popup_btn").click(function() {
+            localStorage.setItem("popcookie" + id, "1");
+        });
+
+    });
 });

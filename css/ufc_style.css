@@ -17,7 +17,8 @@
 }
 
 .ufc_hide_scroll,
-.btn_hide {
+.btn_hide,
+.ufc_popup {
     display: none;
 }
 

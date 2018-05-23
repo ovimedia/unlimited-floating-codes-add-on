@@ -199,6 +199,21 @@ if ( ! class_exists( 'unlimited_floating_codes' ) )
                         </option>
                     </select>
                 </p>
+                <p class="popup_option">
+                    <label for="ufc_responsive">
+                        <?php echo translate( 'Show:', 'unlimited-floating-codes' ); ?>
+                    </label>
+                </p>
+                <p class="popup_option">
+                    <select id="ufc_show_popup" name="ufc_show_popup">
+                        <option value="0" <?php if(get_post_meta( get_the_ID(), 'ufc_show_popup', true) == 0) echo ' selected="selected" '; ?> >
+                            <?php echo translate( 'Once', 'unlimited-floating-codes' ) ?>
+                        </option>
+                        <option value="1" <?php if(get_post_meta( get_the_ID(), 'ufc_show_popup', true) == 1) echo ' selected="selected" '; ?> >
+                            <?php echo translate( 'Always', 'unlimited-floating-codes' ) ?>
+                        </option>
+                    </select>
+                </p>
                  <p class="content_option">
                     <label for="ufc_contentbtn">
                         <?php echo translate( 'Button Shortcode to show content:', 'unlimited-floating-codes' ); ?>
@@ -255,6 +270,12 @@ if ( ! class_exists( 'unlimited_floating_codes' ) )
             else
                 update_post_meta( $post_id, 'ufc_scroll', ""); 
 
+            if(sanitize_text_field( $_REQUEST["ufc_type"]) == "popup")
+                update_post_meta( $post_id, 'ufc_show_popup', intval($_REQUEST["ufc_show_popup"])); 
+            else
+                update_post_meta( $post_id, 'ufc_show_popup', ""); 
+                
+
             $hide_responsive = array();
 
             foreach( $_REQUEST['ufc_responsive'] as $hide)
@@ -310,6 +331,7 @@ if ( ! class_exists( 'unlimited_floating_codes' ) )
             $delay = get_post_meta( $code->ID, 'ufc_delay', true);
             $responsive = get_post_meta( $code->ID, 'ufc_responsive', true);
             $scroll = get_post_meta( $code->ID, 'ufc_scroll', true);
+            $popup = get_post_meta( $code->ID, 'ufc_show_popup', true);
 
             $mobile = $style = $class = "";
 
@@ -330,6 +352,9 @@ if ( ! class_exists( 'unlimited_floating_codes' ) )
                     $style .= "margin-top:-".(substr($height, 0, -2) / 2).substr($height,-2).";";
                 else
                     $style .= "margin-top:-".(substr($height, 0, -1) / 2).substr($height,-1).";";
+
+                if($popup == 0)
+                    $class .= " ufc_popup_btn_hide ";
             }
 
             if($type == "button")
@@ -389,6 +414,7 @@ if ( ! class_exists( 'unlimited_floating_codes' ) )
             echo do_shortcode($code->post_content);
 
             if($scroll != "") echo "<input type='hidden' value='".$scroll."' class='ufc_scroll_code' />";
+            if($popup == 0) echo "<input type='hidden' value='".$code->ID."' class='ufc_popup_id' />";
 
             echo "</div>";
             
