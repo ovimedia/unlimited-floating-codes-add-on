@@ -49,11 +49,9 @@ jQuery(document).ready(function($) {
                 jQuery("#ufc_content_" + id).fadeIn(1000);
         }
 
-        if (typeof id !== true && element.find(".ufc_scroll_code").val() == "")
-            jQuery("#ufc_content_" + id).fadeIn(1000);
-
         element.find(".ufc_popup_btn").click(function() {
             localStorage.setItem("popcookie" + id, "1");
+            jQuery("#ufc_content_" + id).fadeOut(1000);
         });
 
     });

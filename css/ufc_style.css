@@ -12,8 +12,16 @@
     margin: 0px !important;
 }
 
-.ufc_associated_content {
+.ufc_associated_content,
+.ufc_popup_btn {
     cursor: pointer !important;
+}
+
+.ufc_popup_btn {
+    position: absolute;
+    top: 0px;
+    right: 0px;
+    margin: -10px;
 }
 
 .ufc_hide_scroll,
