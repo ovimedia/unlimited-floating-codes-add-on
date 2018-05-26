@@ -26,6 +26,8 @@ if ( ! class_exists( 'unlimited_floating_codes' ) )
             add_action( 'wp_footer', array( $this, 'ufc_load_floating_codes') );
             add_shortcode( 'ufc_show_content', array( $this, 'ufc_load_button_content') );
             add_action( 'vc_before_init',  array( $this, 'ufc_vc_button_content') );
+            add_filter( 'manage_edit-code_columns', array( $this, 'ufc_edit_code_columns' )) ;
+            add_action( 'manage_code_posts_custom_column', array( $this, 'ufc_manage_code_columns'), 10, 2 );
         }
                 
         public function ufc_load_languages() 
@@ -35,11 +37,25 @@ if ( ! class_exists( 'unlimited_floating_codes' ) )
     
         public function ufc_init_metabox()
         {
-            add_meta_box( 'zone-code2', translate( 'Floating Code Options', 'unlimited-codes' ), 
+            add_meta_box( 'zone-code2', translate( 'Floating Code Options', 'unlimited-floating-codes' ), 
                 array( $this, 'ufc_meta_options'), 'code', 'side', 'low' );
         }
                        
+        public function ufc_edit_code_columns( $columns ) {
 
+            unset($columns["date"]);
+            unset($columns["shortcode"]);
+            $columns["codetype"] = translate( 'Code type', 'unlimited-floating-codes' );
+            $columns["date"]  = __( 'Date' );
+            
+            return $columns;
+        }
+
+        public function ufc_manage_code_columns( $column, $post_id ) 
+        {
+            if( $column == 'codetype')
+                 echo translate( ucfirst(get_post_meta( $post_id, 'ufc_type', true)) , 'unlimited-floating-codes' );
+        } 
 
         public function ufc_admin_js_css() 
         {
@@ -70,7 +86,7 @@ if ( ! class_exists( 'unlimited_floating_codes' ) )
             <div class="meta_div_codes">         
                 <p>
                     <label for="ufc_type">
-                        <?php echo translate( 'Code Type:', 'unlimited-floating-codes' ); ?>
+                        <?php echo translate( 'Code Type', 'unlimited-floating-codes' ); ?>:
                     </label>
                 </p>
                 <p>
@@ -82,7 +98,7 @@ if ( ! class_exists( 'unlimited_floating_codes' ) )
                             <?php echo translate( 'Button', 'unlimited-floating-codes' ) ?>
                         </option>
                         <option value="content" <?php if(get_post_meta( get_the_ID(), 'ufc_type', true) == "content") echo ' selected="selected" '; ?> >
-                            <?php echo translate( 'Content', 'unlimited-floating-codes' ) ?>
+                            <?php echo translate( 'Content Block', 'unlimited-floating-codes' ) ?>
                         </option>
                         <option value="popup" <?php if(get_post_meta( get_the_ID(), 'ufc_type', true) == "popup") echo ' selected="selected" '; ?> >
                             <?php echo translate( 'Popup', 'unlimited-floating-codes' ) ?>
@@ -287,13 +303,13 @@ if ( ! class_exists( 'unlimited_floating_codes' ) )
 
             foreach ( $codes as $code )
             {
-                $post_type = get_post_meta( $code->ID, 'uc_post_type_id' );
-                $post_id = get_post_meta( $code->ID, 'uc_post_code_id');
-                $exclude_post_id = get_post_meta( $code->ID, 'uc_exclude_post_code_id'); 
+                $post_type = get_post_meta( $code->ID, 'uc_post_type_id', true );
+                $post_id = get_post_meta( $code->ID, 'uc_post_code_id', true);
+                $exclude_post_id = get_post_meta( $code->ID, 'uc_exclude_post_code_id', true); 
                 
                 if($this->check_wpml_languages($code->ID))
-                    if(in_array("all", $post_type[0]) || in_array(get_post_type(get_the_id()), $post_type[0]))
-                            if(in_array(get_the_id(), $post_id[0]) || in_array(-1, $post_id[0]) && !in_array(get_the_id(), $exclude_post_id[0] ))
+                    if(in_array("all", $post_type) || in_array(get_post_type(get_the_id()), $post_type))
+                            if(in_array(get_the_id(), $post_id) || in_array(-1, $post_id) && !in_array(get_the_id(), $exclude_post_id ))
                                 $this->load_content_code($code);    
             } 
         
@@ -405,9 +421,9 @@ if ( ! class_exists( 'unlimited_floating_codes' ) )
         {
             if ( function_exists('icl_object_id') )  
             {
-                $wpml_languages = get_post_meta( $code_id, 'uc_wpml_languages_load' );
+                $wpml_languages = get_post_meta( $code_id, 'uc_wpml_languages_load', true );
                 
-                if(in_array("all", $wpml_languages[0]) || in_array(ICL_LANGUAGE_CODE, $wpml_languages[0]) )
+                if(in_array("all", $wpml_languages) || in_array(ICL_LANGUAGE_CODE, $wpml_languages) )
                     return true;
                 else
                     return false;

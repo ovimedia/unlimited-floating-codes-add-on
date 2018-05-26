@@ -1,0 +1,127 @@
+msgid ""
+msgstr ""
+"Project-Id-Version: \n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: \n"
+"PO-Revision-Date: 2018-05-25 19:05+0200\n"
+"Last-Translator: \n"
+"Language-Team: \n"
+"Language: es\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"X-Generator: Poedit 2.0.2\n"
+"X-Poedit-Basepath: .\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+
+# @ su
+msgid "Floating Code Options"
+msgstr "Opciones del código flotante"
+
+msgid "Code type"
+msgstr "Tipo de código"
+
+msgid "Neither"
+msgstr "Ninguno"
+
+msgid "Button"
+msgstr "Botón"
+
+msgid "Content Block"
+msgstr "Bloque de contenido"
+
+msgid "Popup"
+msgstr "Popup"
+
+msgid "Code Type"
+msgstr "Tipo de código"
+
+msgid "Code Location:"
+msgstr "Ubicación del código"
+
+msgid "Top"
+msgstr "Arriba"
+
+msgid "Bottom"
+msgstr "Abajo"
+
+msgid "Left"
+msgstr "Izquierda"
+
+msgid "Right"
+msgstr "Derecha"
+
+msgid "Code Position:"
+msgstr "Posición del código:"
+
+msgid "In px or %"
+msgstr "En px o %"
+
+msgid "Code Width:"
+msgstr "Ancho del código:"
+
+msgid "Code Height:"
+msgstr "Altura del código:"
+
+msgid "Rotate Button:"
+msgstr "Rotar botón:"
+
+msgid "Scroll to show:"
+msgstr "Scroll para mostrarse:"
+
+msgid "No"
+msgstr "No"
+
+msgid "Yes"
+msgstr "Si"
+
+msgid "Delay of the appearance:"
+msgstr "Retardo de aparición:"
+
+msgid "In seconds"
+msgstr "En segundos"
+
+msgid "Without px"
+msgstr "Sin px"
+
+msgid "Hide on:"
+msgstr "Ocultar en:"
+
+msgid "Desktop"
+msgstr "Escritorio"
+
+msgid "Tablet"
+msgstr "Tablet"
+
+msgid "Mobile"
+msgstr "Móvil"
+
+msgid "Button Shortcode to show content:"
+msgstr "Shortcode para mostrar el contenido:"
+
+msgid "Button floating content"
+msgstr "Botón del contenido flotante"
+
+msgid "Floating code to show:"
+msgstr "Código flotante a mostrar:"
+
+msgid "Select the code to show on button click."
+msgstr "Elige el código que se mostrará al hacer click en el botón."
+
+msgid "Text to show:"
+msgstr "Texto para mostrar:"
+
+msgid "Type the button text to show."
+msgstr "Introduce el texto del botón para mostrar."
+
+msgid "Text to hide:"
+msgstr "Texto para ocultar:"
+
+msgid "Type the button text to hide."
+msgstr "Introduce el texto del botón para ocultar."
+
+msgid "CSS Class:"
+msgstr "Clases CSS:"
+
+msgid "Select a CSS class."
+msgstr "Elije las clases CSS."
