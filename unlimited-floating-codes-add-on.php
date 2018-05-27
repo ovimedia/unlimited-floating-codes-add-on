@@ -6,7 +6,7 @@ Author: Ovi García - ovimedia.es
 Author URI: http://www.ovimedia.es/
 Text Domain: unlimited-floating-codes
 Version: 0.3
-Plugin URI: http://www.ovimedia.es/
+Plugin URI: https://github.com/ovimedia/unlimited-floating-codes-add-on
 */
 
 if ( ! defined( 'ABSPATH' ) ) exit; 
@@ -45,7 +45,7 @@ if ( ! class_exists( 'unlimited_floating_codes' ) )
 
             unset($columns["date"]);
             unset($columns["shortcode"]);
-            $columns["codetype"] = translate( 'Code type', 'unlimited-floating-codes' );
+            $columns["codetype"] = translate( 'Floating code type', 'unlimited-floating-codes' );
             $columns["date"]  = __( 'Date' );
             
             return $columns;
