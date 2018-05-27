@@ -31,7 +31,7 @@ jQuery(document).ready(function($) {
             var parent = element.parent();
             var id = parent.find(".ufc_popup_id").val();
 
-            if (localStorage.getItem("popcookie" + id) != "1") {
+            if (localStorage.getItem("popcookie" + id) != "1" || parent.hasClass("ufc_type_button")) {
                 if (document.body.scrollTop > element.val() || document.documentElement.scrollTop > element.val()) {
                     parent.fadeIn(800);
                 }

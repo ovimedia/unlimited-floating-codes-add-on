@@ -267,7 +267,7 @@ if ( ! class_exists( 'unlimited_floating_codes' ) )
                 update_post_meta( $post_id, 'ufc_delay', ""); 
 
             if(sanitize_text_field( $_REQUEST["ufc_scroll"]) != "content")
-                update_post_meta( $post_id, 'ufc_scroll', sanitize_text_field($_REQUEST["ufc_scroll"])); 
+                update_post_meta( $post_id, 'ufc_scroll', sanitize_text_field(str_replace("px", "",$_REQUEST["ufc_scroll"]))); 
             else
                 update_post_meta( $post_id, 'ufc_scroll', "");                 
 
@@ -328,6 +328,8 @@ if ( ! class_exists( 'unlimited_floating_codes' ) )
             $scroll = get_post_meta( $code->ID, 'ufc_scroll', true);
 
             $mobile = $style = $class = "";
+
+            $class .= " ufc_type_".$type." ";
 
             foreach($responsive as $device)
                 $class .= " ".$device." ";
