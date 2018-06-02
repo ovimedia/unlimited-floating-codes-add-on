@@ -5,7 +5,7 @@ Description: Generate many floating codes to display any content.
 Author: Ovi García - ovimedia.es
 Author URI: http://www.ovimedia.es/
 Text Domain: unlimited-floating-codes
-Version: 0.3
+Version: 0.4
 Plugin URI: https://github.com/ovimedia/unlimited-floating-codes-add-on
 */
 
@@ -41,8 +41,9 @@ if ( ! class_exists( 'unlimited_floating_codes' ) )
                 array( $this, 'ufc_meta_options'), 'code', 'side', 'low' );
         }
                        
-        public function ufc_edit_code_columns( $columns ) {
-
+        public function ufc_edit_code_columns( $columns ) 
+        {
+            unset($columns["order"]);
             unset($columns["date"]);
             unset($columns["shortcode"]);
             $columns["codetype"] = translate( 'Floating code type', 'unlimited-floating-codes' );
@@ -125,9 +126,8 @@ if ( ! class_exists( 'unlimited_floating_codes' ) )
                                     echo ' selected="selected" '; 
 
                                 echo ">".translate( ucfirst ($positions[$x]), 'unlimited-floating-codes' )."</option>"; 
-
                             } 
-
+                            
                         ?>
                     </select>
                 </p>
@@ -435,9 +435,17 @@ if ( ! class_exists( 'unlimited_floating_codes' ) )
         }
 
         public function ufc_load_button_content($atts )
-        {
-            return "<p class='ufc_associated_content ".$atts['class']."'><span class='btn_show'>".$atts['textshow']."</span>
-            <span class='btn_hide'>".$atts['texthide']."</span><input type='hidden' value='".$atts['id']."' class='ufc_associated' /></p>";
+        {   
+            if($atts['imageshow'] == "")
+                return "<p class='ufc_associated_content ".$atts['class']."'>
+                <span class='btn_show'>".$atts['textshow']."</span>
+                <span class='btn_hide'>".$atts['texthide']."</span>
+                <input type='hidden' value='".$atts['id']."' class='ufc_associated' /></p>";
+            else
+                return "<p class='ufc_associated_content ".$atts['class']."'>
+                <img src=".wp_get_attachment_url($atts['imageshow'], 'full')." class='btn_show' />
+                <img src=".wp_get_attachment_url($atts['imagehide'], 'full')." class='btn_hide' />
+                <input type='hidden' value='".$atts['id']."' class='ufc_associated' /></p>";
         }
 
         public function ufc_vc_button_content() 
@@ -462,7 +470,7 @@ if ( ! class_exists( 'unlimited_floating_codes' ) )
             } 
 
             vc_map( array(
-                "name" => translate( "Button floating content", 'unlimited-floating-codes' ),
+                "name" => translate( "Floating content button", 'unlimited-floating-codes' ),
                 "base" => "ufc_show_content",
                 "class" => "",
                 "icon" => WP_PLUGIN_URL. '/unlimited-codes/img/ufc_icon.png',
@@ -485,7 +493,7 @@ if ( ! class_exists( 'unlimited_floating_codes' ) )
                         "class" => "",
                         "heading" => translate( "Text to show:", 'unlimited-floating-codes' ),
                         "param_name" => "textshow",
-                        "description" => translate( "Type the button text to show.", 'unlimited-floating-codes' ) 
+                        "description" => translate( "Button text to show floating code.", 'unlimited-floating-codes' ) 
                     ),
                     array(
                         "type" => "textfield",
@@ -493,7 +501,23 @@ if ( ! class_exists( 'unlimited_floating_codes' ) )
                         "class" => "",
                         "heading" => translate( "Text to hide:", 'unlimited-floating-codes' ),
                         "param_name" => "texthide",
-                        "description" => translate( "Type the button text to hide.", 'unlimited-floating-codes' ) 
+                        "description" => translate( "Button text to hide floating code.", 'unlimited-floating-codes' ) 
+                    ),
+                    array(
+                        "type" => "attach_image",
+                        "holder" => "div",
+                        "class" => "",
+                        "heading" => translate( "Image to show:", 'unlimited-floating-codes' ),
+                        "param_name" => "imageshow",
+                        "description" => translate( "Button image to show floating code.", 'unlimited-floating-codes' ) 
+                    ),
+                    array(
+                        "type" => "attach_image",
+                        "holder" => "div",
+                        "class" => "",
+                        "heading" => translate( "Image to hide:", 'unlimited-floating-codes' ),
+                        "param_name" => "imagehide",
+                        "description" => translate( "Button image to hide  floating code.", 'unlimited-floating-codes' ) 
                     ),
                     array(
                         "type" => "textfield",
