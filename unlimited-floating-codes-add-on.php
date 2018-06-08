@@ -5,7 +5,7 @@ Description: Generate many floating codes to display any content.
 Author: Ovi García - ovimedia.es
 Author URI: http://www.ovimedia.es/
 Text Domain: unlimited-floating-codes
-Version: 0.4
+Version: 0.5
 Plugin URI: https://github.com/ovimedia/unlimited-floating-codes-add-on
 */
 
@@ -195,7 +195,24 @@ if ( ! class_exists( 'unlimited_floating_codes' ) )
                    <input type="text" placeholder="<?php echo translate( 'Without px', 'unlimited-floating-codes' ); ?>" 
                    value='<?php echo get_post_meta( get_the_ID(), 'ufc_scroll', true); ?>' 
                    id="ufc_scroll" name="ufc_scroll" />
-                </p>      
+                </p>     
+
+                <p class="popup_option">
+                    <label for="ufc_fullpopup">
+                        <?php echo translate( 'Show content overlay background:', 'unlimited-floating-codes' ); ?>
+                    </label>
+                </p>
+                <p class="popup_option">
+                    <select id="ufc_fullpopup" name="ufc_fullpopup">
+                        <option value="0" <?php if(get_post_meta( get_the_ID(), 'ufc_fullpopup', true) == 0) echo ' selected="selected" '; ?> >
+                            <?php echo translate( 'No', 'unlimited-floating-codes' ) ?>
+                        </option>
+                        <option value="1" <?php if(get_post_meta( get_the_ID(), 'ufc_fullpopup', true) == 1) echo ' selected="selected" '; ?> >
+                            <?php echo translate( 'Yes', 'unlimited-floating-codes' ) ?>
+                        </option>
+                    </select>
+                </p>   
+ 
                 <p class="button_option content_option popup_option">
                     <label for="ufc_responsive">
                         <?php echo translate( 'Hide on:', 'unlimited-floating-codes' ); ?>
@@ -266,11 +283,16 @@ if ( ! class_exists( 'unlimited_floating_codes' ) )
             else
                 update_post_meta( $post_id, 'ufc_delay', ""); 
 
-            if(sanitize_text_field( $_REQUEST["ufc_scroll"]) != "content")
+            if(sanitize_text_field( $_REQUEST["ufc_type"]) != "content")
                 update_post_meta( $post_id, 'ufc_scroll', sanitize_text_field(str_replace("px", "",$_REQUEST["ufc_scroll"]))); 
             else
-                update_post_meta( $post_id, 'ufc_scroll', "");                 
-
+                update_post_meta( $post_id, 'ufc_scroll', "");           
+                
+            if(sanitize_text_field( $_REQUEST["ufc_type"]) == "popup")
+                update_post_meta( $post_id, 'ufc_fullpopup', intval($_REQUEST["ufc_fullpopup"])); 
+            else
+                update_post_meta( $post_id, 'ufc_fullpopup', ""); 
+                
             $hide_responsive = array();
 
             foreach( $_REQUEST['ufc_responsive'] as $hide)
@@ -326,6 +348,7 @@ if ( ! class_exists( 'unlimited_floating_codes' ) )
             $delay = get_post_meta( $code->ID, 'ufc_delay', true);
             $responsive = get_post_meta( $code->ID, 'ufc_responsive', true);
             $scroll = get_post_meta( $code->ID, 'ufc_scroll', true);
+            $fullpopup = get_post_meta( $code->ID, 'ufc_fullpopup', true);
 
             $mobile = $style = $class = "";
 
@@ -405,8 +428,10 @@ if ( ! class_exists( 'unlimited_floating_codes' ) )
                 echo "</style>";
             }
 
+            if($fullpopup == 1) echo "<div id='background_popup_".$code->ID."' class='background_popup'></div>";
 
             echo "<div id='ufc_content_".$code->ID."' class='ufc_".$type." ".$class."' style='".$style."' >";
+            
             echo do_shortcode($code->post_content);
 
             if($scroll != "") echo "<input type='hidden' value='".$scroll."' class='ufc_scroll_code' />";

@@ -25,6 +25,17 @@
     z-index: 99;
 }
 
+.background_popup {
+    display: none;
+    width: 100%;
+    height: 100%;
+    position: absolute;
+    top: 0px;
+    left: 0px;
+    z-index: 99999;
+    background-color: rgba(0, 0, 0, 0.8);
+}
+
 .ufc_hide_scroll,
 .btn_hide,
 .ufc_popup {

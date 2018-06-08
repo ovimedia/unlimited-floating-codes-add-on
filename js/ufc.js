@@ -34,7 +34,16 @@ jQuery(document).ready(function($) {
             if (localStorage.getItem("popcookie" + id) != "1" || parent.hasClass("ufc_type_button")) {
                 if (document.body.scrollTop > element.val() || document.documentElement.scrollTop > element.val()) {
                     parent.fadeIn(800);
+
+                    if (parent.hasClass("ufc_type_popup")) {
+                        jQuery(".background_popup").css("height", jQuery("html").height());
+                        jQuery(".background_popup").fadeIn(800);
+                    }
                 }
+            }
+
+            if (jQuery(window).scrollTop() + jQuery(window).height() == jQuery(document).height() && parent.hasClass("ufc_type_button")) {
+                parent.fadeOut(800);
             }
         });
     }
@@ -52,6 +61,7 @@ jQuery(document).ready(function($) {
         element.find(".ufc_popup_btn").click(function() {
             localStorage.setItem("popcookie" + id, "1");
             jQuery("#ufc_content_" + id).fadeOut(800);
+            jQuery("#background_popup_" + id).fadeOut(800);
         });
 
     });
