@@ -11,13 +11,13 @@
     width: 100% !important;
     margin: 0px !important;
 }
-
+.ufc_bottom{font-style: inherit}
 .ufc_associated_content,
 .ufc_popup_btn {
     cursor: pointer !important;
 }
 
-.ufc_popup_btn {
+.ufc_cross_btn {
     position: absolute;
     top: 0px;
     right: 0px;
@@ -46,7 +46,7 @@
     top: 50%;
     left: 50%;
 }
-
+.ufc_content_center{visibility: hidden ; opacity: 0 ;}
 .ufc_top {
     top: 0px !important;
 }

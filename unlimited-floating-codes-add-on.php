@@ -5,7 +5,7 @@ Description: Generate many floating codes to display any content.
 Author: Ovi García - ovimedia.es
 Author URI: http://www.ovimedia.es/
 Text Domain: unlimited-floating-codes
-Version: 0.5
+Version: 0.6
 Plugin URI: https://github.com/ovimedia/unlimited-floating-codes-add-on
 */
 
@@ -25,7 +25,10 @@ if ( ! class_exists( 'unlimited_floating_codes' ) )
             add_action( 'wp_head', array($this, 'ufc_front_js_css'));
             add_action( 'wp_footer', array( $this, 'ufc_load_floating_codes') );
             add_shortcode( 'ufc_show_content', array( $this, 'ufc_load_button_content') );
+            add_shortcode( 'ufc_hide_popup', array( $this, 'ufc_hide_popup_button') );
+            
             add_action( 'vc_before_init',  array( $this, 'ufc_vc_button_content') );
+            add_action( 'vc_before_init',  array( $this, 'ufc_vc_button_popup') );
             add_filter( 'manage_edit-code_columns', array( $this, 'ufc_edit_code_columns' )) ;
             add_action( 'manage_code_posts_custom_column', array( $this, 'ufc_manage_code_columns'), 10, 2 );
         }
@@ -116,7 +119,7 @@ if ( ! class_exists( 'unlimited_floating_codes' ) )
 
                         <?php           
 
-                            $positions = array("top", "bottom", "left", "right");
+                            $positions = array("top", "bottom", "left", "right", "center");
 
                             for ($x = 0; $x < count($positions); $x++) 
                             { 
@@ -354,6 +357,8 @@ if ( ! class_exists( 'unlimited_floating_codes' ) )
 
             $class .= " ufc_type_".$type." ";
 
+       
+
             foreach($responsive as $device)
                 $class .= " ".$device." ";
     
@@ -403,10 +408,23 @@ if ( ! class_exists( 'unlimited_floating_codes' ) )
 
             if($type == "content")
             {
-                if($location == "top" || $location == "bottom")
-                    $style .= $location.":-".$height.";";
+                $class .= " ufc_content_".$location." ";
+                if($location != "center")
+                {
+                    if($location == "top" || $location == "bottom")
+                        $style .= $location.":-".$height.";";
+                    else
+                        $style .= $location.":-".$width.";";
+                }
                 else
-                    $style .= $location.":-".$width.";";
+                {
+                    $style .= "left:50%;";
+
+                    if(substr($width,-2) == "px")
+                        $style .= "margin-left:-".(substr($width, 0, -2) / 2).substr($width,-2).";";
+                    else
+                        $style .= "margin-left:-".(substr($width, 0, -1) / 2).substr($width,-1).";";
+                }
 
                 if($location == "top" || $location == "bottom")
                     $style .= "left: ".$position.";";
@@ -418,13 +436,24 @@ if ( ! class_exists( 'unlimited_floating_codes' ) )
 
                 $class .= " ufc_hide_".$code->ID;
 
-                echo "<style>.ufc_show_".$code->ID."{".$location.": 0px !important;}";
-                
-                if($location == "top" || $location == "bottom")
-                    echo ".ufc_hide_".$code->ID."{".$location."-: ".$height." !important;}";
-                else
-                    echo ".ufc_hide_".$code->ID."{".$location."-: ".$width." !important;}";
+                echo "<style>";
+                if($location != "center")
+                {
+                    echo ".ufc_show_".$code->ID."{".$location.": 0px !important;}";
                     
+                    if($location == "top" || $location == "bottom")
+                        echo ".ufc_hide_".$code->ID."{".$location."-: ".$height." !important;}";
+                    else
+                        echo ".ufc_hide_".$code->ID."{".$location."-: ".$width." !important;}";
+                }
+                else
+                {
+                    echo ".ufc_show_".$code->ID."{visibility: visible !important; opacity: 1 !important;}";
+                    echo ".ufc_hide_".$code->ID."{visibility: hidden !important; opacity: 0 !important;}";
+                    $style .= "-webkit-transition: visibility  ".$delay."s, opacity ".$delay."s; ";
+                    $style .= "transition: visibility  ".$delay."s, opacity ".$delay."s; ";
+                }
+
                 echo "</style>";
             }
 
@@ -437,10 +466,35 @@ if ( ! class_exists( 'unlimited_floating_codes' ) )
             if($scroll != "") echo "<input type='hidden' value='".$scroll."' class='ufc_scroll_code' />";
 
             if($type == "popup") echo "<input type='hidden' value='".$code->ID."' class='ufc_popup_id' />
-            <span class='ufc_popup_btn'>
+            <span class='ufc_popup_btn ufc_cross_btn'>
             <img src='".WP_PLUGIN_URL. '/'.basename( dirname( __FILE__ ) ).'/img/cancel.png'."' )></span>";
             
             echo "</div>";
+
+            $style = "";
+            $result = $code->post_content;
+            $pos = 0;
+
+            $total = substr_count($result, 'css=".', $pos);
+            
+            $style .= "<style>";
+
+            if($total > 0)
+            {
+                for($x=0; $x < $total; $x++)
+                {
+                    $pos = strpos($result, 'css=".', $pos);
+                    
+                    $style .= substr($result, $pos + 5, strpos( $result, "}", $pos) - $pos - 4);
+
+                    $pos++;
+                }
+            }
+            
+            $style .= get_post_meta( $code->ID, "_wpb_post_custom_css", true );
+            $style .= "</style>";
+
+            echo $style;
             
         }
 
@@ -473,6 +527,42 @@ if ( ! class_exists( 'unlimited_floating_codes' ) )
                 <input type='hidden' value='".$atts['id']."' class='ufc_associated' /></p>";
         }
 
+        public function ufc_hide_popup_button($atts )
+        {   
+            return "<p class='ufc_popup_btn ".$atts['class']."'>".$atts['buttontext']."</p>";
+        }
+        
+        public function ufc_vc_button_popup() 
+        {                           
+            vc_map( array("name" => translate( "Hide Popup button", 'unlimited-floating-codes' ),
+                    "base" => "ufc_hide_popup",
+                    "class" => "",
+                    "icon" => WP_PLUGIN_URL. '/unlimited-codes/img/ufc_icon.png',
+                    "category" => __( "Unlimited Codes", "js_composer"),
+                    'admin_enqueue_js' => array(get_template_directory_uri().'/vc_extend/bartag.js'),
+                    'admin_enqueue_css' => array(get_template_directory_uri().'/vc_extend/bartag.css'),
+                    "params" => array(              
+                        array(
+                            "type" => "textfield",
+                            "holder" => "div",
+                            "class" => "",
+                            "heading" => translate( "Button text:", 'unlimited-floating-codes' ),
+                            "param_name" => "buttontext",
+                            "description" => translate( "Button text to hide Popup.", 'unlimited-floating-codes' ) 
+                        ),
+                        array(
+                            "type" => "textfield",
+                            "holder" => "div",
+                            "class" => "",
+                            "heading" => translate( "CSS Class:", "unlimited-codes" ),
+                            "param_name" => "class",
+                            "description" => translate( "Select a CSS class.", "unlimited-codes" )
+                        )
+                    )
+                )
+            );
+        }
+
         public function ufc_vc_button_content() 
         {
             $content_code = array();
@@ -495,66 +585,67 @@ if ( ! class_exists( 'unlimited_floating_codes' ) )
             } 
 
             vc_map( array(
-                "name" => translate( "Floating content button", 'unlimited-floating-codes' ),
-                "base" => "ufc_show_content",
-                "class" => "",
-                "icon" => WP_PLUGIN_URL. '/unlimited-codes/img/ufc_icon.png',
-                "category" => __( "Unlimited Codes", "js_composer"),
-                'admin_enqueue_js' => array(get_template_directory_uri().'/vc_extend/bartag.js'),
-                'admin_enqueue_css' => array(get_template_directory_uri().'/vc_extend/bartag.css'),
-                "params" => array(              
-                    array(
-                        "type" => "dropdown",
-                        "holder" => "div",
-                        "class" => "",
-                        "heading" => translate( "Floating code to show:",'unlimited-floating-codes' ),
-                        "param_name" => "id",
-                        "value" => $content_code,
-                        "description" => translate( "Select the code to show on button click.", 'unlimited-floating-codes' )
-                    ),
-                    array(
-                        "type" => "textfield",
-                        "holder" => "div",
-                        "class" => "",
-                        "heading" => translate( "Text to show:", 'unlimited-floating-codes' ),
-                        "param_name" => "textshow",
-                        "description" => translate( "Button text to show floating code.", 'unlimited-floating-codes' ) 
-                    ),
-                    array(
-                        "type" => "textfield",
-                        "holder" => "div",
-                        "class" => "",
-                        "heading" => translate( "Text to hide:", 'unlimited-floating-codes' ),
-                        "param_name" => "texthide",
-                        "description" => translate( "Button text to hide floating code.", 'unlimited-floating-codes' ) 
-                    ),
-                    array(
-                        "type" => "attach_image",
-                        "holder" => "div",
-                        "class" => "",
-                        "heading" => translate( "Image to show:", 'unlimited-floating-codes' ),
-                        "param_name" => "imageshow",
-                        "description" => translate( "Button image to show floating code.", 'unlimited-floating-codes' ) 
-                    ),
-                    array(
-                        "type" => "attach_image",
-                        "holder" => "div",
-                        "class" => "",
-                        "heading" => translate( "Image to hide:", 'unlimited-floating-codes' ),
-                        "param_name" => "imagehide",
-                        "description" => translate( "Button image to hide  floating code.", 'unlimited-floating-codes' ) 
-                    ),
-                    array(
-                        "type" => "textfield",
-                        "holder" => "div",
-                        "class" => "",
-                        "heading" => translate( "CSS Class:", "unlimited-codes" ),
-                        "param_name" => "class",
-                        "description" => translate( "Select a CSS class.", "unlimited-codes" )
+                    "name" => translate( "Floating content button", 'unlimited-floating-codes' ),
+                    "base" => "ufc_show_content",
+                    "class" => "",
+                    "icon" => WP_PLUGIN_URL. '/unlimited-codes/img/ufc_icon.png',
+                    "category" => __( "Unlimited Codes", "js_composer"),
+                    'admin_enqueue_js' => array(get_template_directory_uri().'/vc_extend/bartag.js'),
+                    'admin_enqueue_css' => array(get_template_directory_uri().'/vc_extend/bartag.css'),
+                    "params" => array(              
+                        array(
+                            "type" => "dropdown",
+                            "holder" => "div",
+                            "class" => "",
+                            "heading" => translate( "Floating code to show:",'unlimited-floating-codes' ),
+                            "param_name" => "id",
+                            "value" => $content_code,
+                            "description" => translate( "Select the code to show on button click.", 'unlimited-floating-codes' )
+                        ),
+                        array(
+                            "type" => "textfield",
+                            "holder" => "div",
+                            "class" => "",
+                            "heading" => translate( "Text to show:", 'unlimited-floating-codes' ),
+                            "param_name" => "textshow",
+                            "description" => translate( "Button text to show floating code.", 'unlimited-floating-codes' ) 
+                        ),
+                        array(
+                            "type" => "textfield",
+                            "holder" => "div",
+                            "class" => "",
+                            "heading" => translate( "Text to hide:", 'unlimited-floating-codes' ),
+                            "param_name" => "texthide",
+                            "description" => translate( "Button text to hide floating code.", 'unlimited-floating-codes' ) 
+                        ),
+                        array(
+                            "type" => "attach_image",
+                            "holder" => "div",
+                            "class" => "",
+                            "heading" => translate( "Image to show:", 'unlimited-floating-codes' ),
+                            "param_name" => "imageshow",
+                            "description" => translate( "Button image to show floating code.", 'unlimited-floating-codes' ) 
+                        ),
+                        array(
+                            "type" => "attach_image",
+                            "holder" => "div",
+                            "class" => "",
+                            "heading" => translate( "Image to hide:", 'unlimited-floating-codes' ),
+                            "param_name" => "imagehide",
+                            "description" => translate( "Button image to hide  floating code.", 'unlimited-floating-codes' ) 
+                        ),
+                        array(
+                            "type" => "textfield",
+                            "holder" => "div",
+                            "class" => "",
+                            "heading" => translate( "CSS Class:", "unlimited-codes" ),
+                            "param_name" => "class",
+                            "description" => translate( "Select a CSS class.", "unlimited-codes" )
+                        )
                     )
+                    
                 )
-                
-            ) );
+            );      
         }
     }
 }
