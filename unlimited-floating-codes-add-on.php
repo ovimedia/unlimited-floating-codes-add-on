@@ -18,7 +18,6 @@ if ( ! class_exists( 'unlimited_floating_codes' ) )
         function __construct() 
         {   
             add_action( 'init', array( $this, 'ufc_load_languages') );
-            add_action( 'init', array( $this, 'ufc_save_options') );
             add_action( 'save_post', array( $this, 'ufc_save_data') );
             add_action( 'add_meta_boxes', array( $this, 'ufc_init_metabox') ); 
             add_action( 'admin_print_scripts', array( $this, 'ufc_admin_js_css') );
